@@ -1,5 +1,7 @@
 import random
 import time
+import json
+import os
 
 #Colours
 
@@ -18,8 +20,26 @@ print("This game will make you less bored!")
 print("Rock beats scissors, scissors beats paper, paper beats rock.")
 print("First to 3 points wins.")
 
-total_player_wins = 0
-total_robot_wins = 0
+
+# Load profiles
+if os.path.exists("profiles.json"):
+    try:
+        with open("profiles.json", "r") as file:
+            player_profiles = json.load(file)
+    except json.JSONDecodeError:
+        player_profiles = {}
+else:
+    player_profiles = {}
+
+# Ask for player name
+player_name = input("Enter your name: ")
+
+if player_name not in player_profiles:
+    print("New player detected. Creating profile...")
+    player_profiles[player_name] = {"total_wins": 0, "total_losses": 0}
+else:
+    print(f"Welcome back, {player_name}!")
+    print(f"Your stats — Wins: {player_profiles[player_name]['total_wins']}, Losses: {player_profiles[player_name]['total_losses']}")
 
 # Main game loop
 while True:
@@ -101,13 +121,17 @@ while True:
     if player_score == 3:
         print(GREEN + "You won the game!"
               " Finally..." + RESET)
-        total_player_wins += 1
+        player_profiles[player_name]["total_wins"] += 1
     else:
         print(RED + "Computer won the game!"
               " Weak!..." + RESET)
-        total_robot_wins += 1
+        player_profiles[player_name]["total_losses"] += 1
 
-    print("Score of total game — You: " + GREEN + str(total_player_wins) + RESET + " | Computer: " + RED + str(total_robot_wins) + RESET)
+    print("Total stats for " + player_name + " — Wins: " + GREEN + str(player_profiles[player_name]["total_wins"]) + RESET +
+          " | Losses: " + RED + str(player_profiles[player_name]["total_losses"]) + RESET)
+    
+    with open("profiles.json", "w") as file:
+        json.dump(player_profiles, file, indent=4)
 
     # Ask to play again
     play_again = input("Do you want to play again? (yes/no): ").lower()
