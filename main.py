@@ -1,6 +1,12 @@
 import random
 import time
 
+#Colours
+
+GREEN = "\033[92m"
+RED = "\033[91m"
+RESET = "\033[0m"
+
 # The Options that the player has to pick.
 options = ("rock", "paper", "scissors")
 secret_option = "shotgun"
@@ -11,6 +17,9 @@ print("This game will make you less bored!")
 # How the game works.
 print("Rock beats scissors, scissors beats paper, paper beats rock.")
 print("First to 3 points wins.")
+
+total_player_wins = 0
+total_robot_wins = 0
 
 # Main game loop
 while True:
@@ -58,10 +67,10 @@ while True:
             time_taken = end_time - start_time
 
             if player_answer == correct_answer and time_taken <= 8:
-                print("Correct and fast! You win the round. You will be a mathematician..")
+                print(GREEN + "Correct and fast! You win the round. You will be a mathematician.." + RESET)
                 player_score += 1
             else:
-                print("Too Slow or Wrong Answer! Computer wins the round. You suck at Math.")
+                print(RED + "Too Slow or Wrong Answer! Computer wins the round. You suck at Math." + RESET)
                 robot_score += 1
 
 
@@ -72,15 +81,15 @@ while True:
                 (player == "paper" and robot == "rock") or
                 (player == "scissors" and robot == "paper")
         ):
-            print("You win this round.")
+            print(GREEN + "You win this round." + RESET)
             player_score += 1
 
         # The Loss outcome
         else:
-            print("Computer wins this round.")
+            print(RED + "Computer wins this round." + RESET)
             robot_score += 1
 
-        print("Score — You: " + str(player_score) + " | Computer: " + str(robot_score))
+        print("Score — You: " + GREEN + str(player_score) + RESET  + " | Computer: " + RED + str(robot_score) + RESET )
 
         # Secret Thingy 😉
         if robot_score == 2 and not hint_shown:
@@ -90,14 +99,19 @@ while True:
 
     # Final results from the game
     if player_score == 3:
-        print("You won the game!"
-              " Finally...")
+        print(GREEN + "You won the game!"
+              " Finally..." + RESET)
+        total_player_wins += 1
     else:
-        print("Computer won the game!"
-              " Weak!...")
+        print(RED + "Computer won the game!"
+              " Weak!..." + RESET)
+        total_robot_wins += 1
+
+    print("Score of total game — You: " + GREEN + str(total_player_wins) + RESET + " | Computer: " + RED + str(total_robot_wins) + RESET)
 
     # Ask to play again
     play_again = input("Do you want to play again? (yes/no): ").lower()
     if play_again != "yes":
         print("Thanks for playing, and watch your meeting!")
+
         break
