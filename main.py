@@ -9,73 +9,9 @@ RED = "\033[91m"
 YELLOW = "\033[93m"
 RESET = "\033[0m"
 
-# Game options (replaced later by dynamic ruleset)
+# Game options
+options = ("rock", "paper", "scissors")
 secret_option = "shotgun"
-
-# ---------------------------
-# Object-Oriented Engine
-# ---------------------------
-from enum import Enum
-from dataclasses import dataclass, field
-from typing import Optional, Set, Tuple
-
-class Outcome(str, Enum):
-    WIN = "win"
-    LOSE = "lose"
-    DRAW = "draw"
-
-@dataclass(eq=False)
-class Element:
-    code: str
-    name: str
-    description: Optional[str] = None
-    tags: Set[str] = field(default_factory=set)
-    def __hash__(self): return hash(self.code)
-
-@dataclass
-class Interaction:
-    source: Element
-    target: Element
-    outcome: Outcome
-    strength: float = 1.0
-    ruletext: Optional[str] = None
-
-class RulesetBuilder:
-    def __init__(self, code: str, name: str):
-        self.ruleset_code = code
-        self.ruleset_name = name
-        self.elements: dict[str, Element] = {}
-        self.interactions: dict[Tuple[str, str], Interaction] = {}
-
-    def add_element(self, code: str, name: str) -> Element:
-        el = Element(code=code, name=name)
-        self.elements[code] = el
-        return el
-
-    def add_interaction(self, source: Element, target: Element, outcome: Outcome, ruletext: Optional[str] = None):
-        self.interactions[(source.code, target.code)] = Interaction(source, target, outcome, ruletext=ruletext)
-        reverse_outcome = Outcome.DRAW if source == target else (
-            Outcome.LOSE if outcome == Outcome.WIN else Outcome.WIN
-        )
-        self.interactions[(target.code, source.code)] = Interaction(target, source, reverse_outcome)
-
-    def decide(self, a: Element, b: Element) -> Tuple[Outcome, Optional[str]]:
-        inter = self.interactions.get((a.code, b.code))
-        if inter:
-            return inter.outcome, inter.ruletext
-        return Outcome.DRAW, None
-
-# ---------------------------
-# Setup Ruleset
-# ---------------------------
-builder = RulesetBuilder("rps", "Rock Paper Scissors")
-rock = builder.add_element("rock", "Rock")
-paper = builder.add_element("paper", "Paper")
-scissors = builder.add_element("scissors", "Scissors")
-builder.add_interaction(rock, scissors, Outcome.WIN, "Rock crushes scissors")
-builder.add_interaction(scissors, paper, Outcome.WIN, "Scissors cuts paper")
-builder.add_interaction(paper, rock, Outcome.WIN, "Paper covers rock")
-options = list(builder.elements.keys())  # dynamic options
 
 # Handle draw with math quiz
 def handle_draw(player_scorer, robot_scorer):
@@ -88,6 +24,8 @@ def handle_draw(player_scorer, robot_scorer):
         correct_answer = a + b
     elif operation == '-':
         correct_answer = a - b
+    elif operation == '/':
+        correct_answer = a / b
     else:
         correct_answer = a * b
 
@@ -161,23 +99,18 @@ while True:
         if player == robot:
             player_score, robot_score = handle_draw(player_score, robot_score)
 
-        elif player == secret_option:
+        elif (
+            player == "shotgun" or
+            (player == "rock" and robot == "scissors") or
+            (player == "paper" and robot == "rock") or
+            (player == "scissors" and robot == "paper")
+        ):
             print(GREEN + "You win this round." + RESET)
             player_score += 1
 
         else:
-            player_element = builder.elements[player]
-            robot_element = builder.elements[robot]
-            outcome, ruletext = builder.decide(player_element, robot_element)
-
-            if outcome == Outcome.WIN:
-                print(GREEN + "You win this round." + RESET)
-                player_score += 1
-            elif outcome == Outcome.LOSE:
-                print(RED + "Computer wins this round." + RESET)
-                robot_score += 1
-            else:
-                player_score, robot_score = handle_draw(player_score, robot_score)
+            print(RED + "Computer wins this round." + RESET)
+            robot_score += 1
 
         print("Score — You: " + GREEN + str(player_score) + RESET + " | Computer: " + RED + str(robot_score) + RESET)
 
